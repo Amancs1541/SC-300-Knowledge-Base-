@@ -1,0 +1,255 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.wrap { padding: 1rem 0; font-family: var(--font-sans); }
+.tab-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem; }
+.tab { font-size: 12px; font-weight: 500; padding: 5px 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; transition: all .15s; }
+.tab:hover { background: var(--color-background-secondary); }
+.tab.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.panel { display: none; }
+.panel.on { display: block; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.125rem; margin-bottom: 1rem; }
+.card-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.card-sub { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: .75rem; }
+.field-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12.5px; gap: 12px; }
+.field-row:last-child { border-bottom: none; }
+.field-label { color: var(--color-text-secondary); flex-shrink: 0; }
+.field-val { color: var(--color-text-primary); text-align: right; word-break: break-all; }
+.field-val.req { color: var(--color-text-danger); font-weight: 500; }
+.field-val.opt { color: var(--color-text-tertiary); }
+.field-val.code { font-family: var(--font-mono); font-size: 11px; background: var(--color-background-secondary); padding: 2px 6px; border-radius: 4px; }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 99px; }
+.b-blue { background: var(--color-background-info); color: var(--color-text-info); }
+.b-warn { background: var(--color-background-warning); color: var(--color-text-warning); }
+.b-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+.b-green { background: var(--color-background-success); color: var(--color-text-success); }
+.b-gray { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.step { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.snum { min-width: 24px; height: 24px; border-radius: 50%; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); flex-shrink: 0; margin-top: 1px; }
+.slabel { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.sdetail { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.scode { font-family: var(--font-mono); font-size: 11px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 4px; padding: 2px 6px; margin-top: 3px; display: inline-block; word-break: break-all; color: var(--color-text-primary); }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mode-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: .75rem; background: var(--color-background-primary); }
+.mode-card.recommended { border: 1.5px solid var(--color-border-info); }
+.mode-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.mode-desc { font-size: 11.5px; color: var(--color-text-secondary); line-height: 1.5; }
+.attr-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+.attr-row:last-child { border-bottom: none; }
+.attr-k { color: var(--color-text-secondary); }
+.attr-v { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-primary); background: var(--color-background-secondary); padding: 1px 5px; border-radius: 3px; }
+.tip-box { background: var(--color-background-info); border-radius: var(--border-radius-md); padding: .625rem .875rem; font-size: 12px; color: var(--color-text-info); line-height: 1.6; margin-bottom: .75rem; }
+.warn-box { background: var(--color-background-warning); border-radius: var(--border-radius-md); padding: .625rem .875rem; font-size: 12px; color: var(--color-text-warning); line-height: 1.6; margin-bottom: .75rem; }
+.section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text-tertiary); margin-bottom: 8px; }
+hr { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: .875rem 0; }
+</style>
+<div class="wrap">
+  <h2 class="sr-only">SAML-based SSO in Entra ID — Detailed explainer for each section</h2>
+  <div class="tab-bar">
+    <button class="tab active" onclick="show('saml-flow')">How SAML works</button>
+    <button class="tab" onclick="show('basic')">① Basic config</button>
+    <button class="tab" onclick="show('attrs')">② Attributes & claims</button>
+    <button class="tab" onclick="show('certs')">③ Certificates</button>
+    <button class="tab" onclick="show('setup')">④ Setup SAP</button>
+    <button class="tab" onclick="show('test')">⑤ Test SSO</button>
+    <button class="tab" onclick="show('modes')">All SSO modes</button>
+  </div>
+
+  <!-- Panel: How SAML works -->
+  <div class="panel on" id="p-saml-flow">
+    <div class="tip-box">SAML 2.0 is a federation protocol. Entra ID acts as the Identity Provider (IdP) and SAP Analytics Cloud is the Service Provider (SP). The user proves their identity once to Entra ID, which issues a signed XML assertion that SAP trusts.</div>
+    <div class="section-label">SP-initiated flow (most common)</div>
+    <div class="step"><div class="snum">1</div><div><div class="slabel">User visits SAP Analytics Cloud</div><div class="sdetail">No session exists. SAP detects the user isn't logged in.</div></div></div>
+    <div class="step"><div class="snum">2</div><div><div class="slabel">SAP generates a SAML AuthnRequest</div><div class="sdetail">An XML document is created and signed, then Base64-encoded. It's sent to the browser as a redirect to Entra ID's SSO URL (Login URL).</div><div class="scode">GET https://login.microsoftonline.com/&lt;tenantId&gt;/saml2?SAMLRequest=PD94...</div></div></div>
+    <div class="step"><div class="snum">3</div><div><div class="slabel">Entra ID authenticates the user</div><div class="sdetail">Full authentication occurs — password, MFA, Conditional Access policies are all evaluated here. The user never re-enters credentials on the SAP side.</div></div></div>
+    <div class="step"><div class="snum">4</div><div><div class="slabel">Entra ID posts a SAML Response to SAP's ACS URL</div><div class="sdetail">An HTTP POST is sent to SAP's Assertion Consumer Service (ACS) URL containing a signed XML SAML Response with the assertion (user attributes inside).</div><div class="scode">POST https://&lt;sap-domain&gt;/saml/acs  Body: SAMLResponse=PHNhbWxw...</div></div></div>
+    <div class="step"><div class="snum">5</div><div><div class="slabel">SAP validates the assertion</div><div class="sdetail">SAP uses Entra ID's public certificate (from step ③) to verify the XML signature. If valid, it extracts attributes like email, name, and creates the user session.</div></div></div>
+    <div class="step"><div class="snum">6</div><div><div class="slabel">User is logged in to SAP</div><div class="sdetail">The user sees their SAP Analytics Cloud dashboard with no additional sign-in required. The session is governed by SAP's own session timeout settings.</div></div></div>
+    <hr>
+    <div class="section-label">IdP-initiated flow</div>
+    <div class="step"><div class="snum">1</div><div><div class="slabel">User starts from the MyApps portal or an app tile</div><div class="sdetail">Entra ID directly generates and posts a SAML assertion to SAP's ACS URL without SAP sending an AuthnRequest first. No prior visit to SAP is needed.</div></div></div>
+    <div class="step"><div class="snum">2</div><div><div class="slabel">SAP validates and creates the session</div><div class="sdetail">Same as steps 5–6 above. The Relay State field can tell SAP which page to redirect to after login.</div></div></div>
+  </div>
+
+  <!-- Panel: Basic config -->
+  <div class="panel" id="p-basic">
+    <div class="tip-box">This is the minimum required configuration. Without these three values, Entra ID cannot send assertions to the right place, and SAP cannot know which tenant issued them.</div>
+    <div class="card">
+      <div class="card-title">Identifier (Entity ID) <span class="badge b-red">Required</span></div>
+      <div class="card-sub">A globally unique URI that identifies SAP Analytics Cloud to Entra ID. It tells Entra ID which application is requesting authentication. This is NOT a URL you visit — it's just a unique string, usually a URN or URL.</div>
+      <div class="field-row"><span class="field-label">Format</span><span class="field-val code">https://&lt;sap-host&gt;/saml2/metadata</span></div>
+      <div class="field-row"><span class="field-label">Who sets it</span><span class="field-val">Copy from SAP's metadata file or SAP admin panel</span></div>
+      <div class="field-row"><span class="field-label">Must match</span><span class="field-val">The Issuer element in SAP's AuthnRequest</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Reply URL — ACS URL <span class="badge b-red">Required</span></div>
+      <div class="card-sub">The exact endpoint where Entra ID will HTTP POST the SAML Response after the user authenticates. This is SAP's Assertion Consumer Service (ACS) URL. Must be HTTPS.</div>
+      <div class="field-row"><span class="field-label">Format</span><span class="field-val code">https://&lt;sap-tenant&gt;.eu10.hanacloudservices.cloud.sap/saml/acs</span></div>
+      <div class="field-row"><span class="field-label">Multiple ACS</span><span class="field-val">You can add multiple (e.g. for different regions or failover)</span></div>
+      <div class="field-row"><span class="field-label">Security</span><span class="field-val">Must use HTTPS. Entra ID will reject HTTP endpoints.</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sign on URL <span class="badge b-red">Required for SP-init</span></div>
+      <div class="card-sub">The URL users visit on the SAP side to trigger SP-initiated login. Entra ID uses this for deep-link access and for the "Test" button in Step ⑤. Not needed for IdP-initiated flows.</div>
+      <div class="field-row"><span class="field-label">Typical format</span><span class="field-val code">https://&lt;sap-tenant&gt;.hanacloudservices.cloud.sap/</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Relay State <span class="badge b-gray">Optional</span></div>
+      <div class="card-sub">Passed through the SAML flow and returned to SAP. SAP can use it to redirect users to a specific page or dashboard after login (deep linking). Leave blank if not needed.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Logout URL <span class="badge b-gray">Optional</span></div>
+      <div class="card-sub">SAP's Single Logout (SLO) endpoint. When the user signs out of Entra ID (e.g. via MyApps), Entra ID will POST a LogoutRequest here so SAP also terminates its session. Without this, signing out of Entra ID won't log the user out of SAP.</div>
+      <div class="field-row"><span class="field-label">Typical format</span><span class="field-val code">https://&lt;sap-tenant&gt;/saml/slo</span></div>
+    </div>
+  </div>
+
+  <!-- Panel: Attributes & Claims -->
+  <div class="panel" id="p-attrs">
+    <div class="tip-box">Claims are key-value pairs included inside the SAML assertion XML. SAP reads these to identify the user and (optionally) provision attributes like role, department, or cost center. The Unique User Identifier is the most critical — it must match the user identity in SAP.</div>
+    <div class="section-label">Default claims (as shown in your screenshot)</div>
+    <div class="card">
+      <div class="attr-row"><span class="attr-k">givenname</span><span class="attr-v">user.givenname</span></div>
+      <div class="attr-row"><span class="attr-k">surname</span><span class="attr-v">user.surname</span></div>
+      <div class="attr-row"><span class="attr-k">emailaddress</span><span class="attr-k">user.mail</span></div>
+      <div class="attr-row"><span class="attr-k">name</span><span class="attr-v">user.userprincipalname</span></div>
+      <div class="attr-row"><span class="attr-k">Unique User Identifier</span><span class="attr-v">user.userprincipalname</span></div>
+    </div>
+    <div class="section-label">What each Entra ID source means</div>
+    <div class="card">
+      <div class="field-row"><span class="field-label">user.userprincipalname</span><span class="field-val">The user's UPN — e.g. alice@contoso.com. Most reliable for cloud-only accounts.</span></div>
+      <div class="field-row"><span class="field-label">user.mail</span><span class="field-val">The user's primary email address (can differ from UPN in hybrid setups).</span></div>
+      <div class="field-row"><span class="field-label">user.givenname</span><span class="field-val">First name attribute from the Entra ID user object.</span></div>
+      <div class="field-row"><span class="field-label">user.onpremisessamaccountname</span><span class="field-val">Useful for hybrid environments where SAP uses Windows AD usernames for matching.</span></div>
+      <div class="field-row"><span class="field-label">user.objectid</span><span class="field-val">The Entra ID GUID — immutable even if UPN or email changes. Best for long-term stability.</span></div>
+    </div>
+    <div class="warn-box"><strong>Common issue:</strong> If SAP can't find the user after SAML login, the Unique User Identifier claim doesn't match how users are stored in SAP. Compare the claim value in the raw SAML response (use browser dev tools → Network tab) with the user ID format in SAP's user management.</div>
+    <div class="section-label">Adding custom claims</div>
+    <div class="card-sub" style="margin-bottom:.5rem">Click Edit on the Attributes & Claims section to add custom claims — for example, mapping SAP roles from Entra ID group membership, or passing department codes for Just-In-Time provisioning.</div>
+    <div class="field-row"><span class="field-label">Group claims</span><span class="field-val">Can pass Entra ID group ObjectIDs or display names to SAP for role assignment.</span></div>
+    <div class="field-row"><span class="field-label">Extension attributes</span><span class="field-val">user.extensionattribute1–15 can carry custom data (e.g. cost center, business unit).</span></div>
+  </div>
+
+  <!-- Panel: Certificates -->
+  <div class="panel" id="p-certs">
+    <div class="tip-box">The certificate is how SAP knows a SAML assertion actually came from Entra ID. Entra ID signs the XML with its private key, and SAP verifies the signature using Entra ID's public certificate. Without this, anyone could forge a SAML assertion and log in as any user.</div>
+    <div class="section-label">Token signing certificate (from your screenshot)</div>
+    <div class="card">
+      <div class="field-row"><span class="field-label">Status</span><span class="field-val" style="color:var(--color-text-success)">Active</span></div>
+      <div class="field-row"><span class="field-label">Thumbprint</span><span class="field-val code">5EDFA8EE10DBA6EA40CFE64F9BA1F10B5592D0C2</span></div>
+      <div class="field-row"><span class="field-label">Expiration</span><span class="field-val">4/18/2031 — 3-year default lifespan</span></div>
+      <div class="field-row"><span class="field-label">Notification email</span><span class="field-val">Alert sent before expiry — set this!</span></div>
+    </div>
+    <div class="section-label">What to download and give to SAP</div>
+    <div class="card">
+      <div class="field-row"><span class="field-label">Certificate (Base64)</span><span class="field-val">PEM format — paste into SAP's trust configuration. Most common.</span></div>
+      <div class="field-row"><span class="field-label">Certificate (Raw)</span><span class="field-val">DER binary format — needed by some older SAP versions.</span></div>
+      <div class="field-row"><span class="field-label">Federation Metadata XML</span><span class="field-val">Contains the cert + SSO URLs in one file. Upload this to SAP if supported.</span></div>
+      <div class="field-row"><span class="field-label">App Federation Metadata URL</span><span class="field-val code" style="font-size:10px">https://login.microsoftonline.com/&lt;tenant&gt;/federationmetadata/2007-06/federationmetadata.xml?appid=...</span></div>
+    </div>
+    <div class="warn-box"><strong>Certificate expiry is a major outage risk.</strong> When the cert expires, ALL SAML logins fail instantly. Set the notification email and plan a rollover 30+ days before expiry. Entra ID supports rolling certs — make the new cert active before removing the old one.</div>
+    <div class="section-label">Verification certificates (optional)</div>
+    <div class="card">
+      <div class="card-sub">These are SAP's certificates uploaded to Entra ID. If SAP signs its AuthnRequests (SP-to-IdP direction), Entra ID uses this cert to verify SAP's signature. Most SAP Analytics Cloud setups leave this empty (signature verification not required by default).</div>
+      <div class="field-row"><span class="field-label">Required</span><span class="field-val">No</span></div>
+      <div class="field-row"><span class="field-label">Active</span><span class="field-val">0 (not uploaded)</span></div>
+    </div>
+  </div>
+
+  <!-- Panel: Set up SAP -->
+  <div class="panel" id="p-setup">
+    <div class="tip-box">These are the Entra ID values you copy into SAP Analytics Cloud's SAML Identity Provider configuration. SAP needs to know where to send users (Login URL) and who issued the assertion (Microsoft Entra Identifier).</div>
+    <div class="card">
+      <div class="card-title">Login URL</div>
+      <div class="card-sub">SAP redirects users here to authenticate. This is Entra ID's SAML 2.0 SSO endpoint for your tenant.</div>
+      <div class="field-row"><span class="field-label">Value</span><span class="field-val code">https://login.microsoftonline.com/&lt;tenantId&gt;/saml2</span></div>
+      <div class="field-row"><span class="field-label">Where in SAP</span><span class="field-val">SAP Admin → Security → SAML Identity Provider → SSO URL</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Microsoft Entra Identifier</div>
+      <div class="card-sub">The Issuer URI of Entra ID. SAP uses this to validate the Issuer element in the SAML Response — it must match exactly or SAP will reject the assertion.</div>
+      <div class="field-row"><span class="field-label">Value</span><span class="field-val code">https://sts.windows.net/&lt;tenantId&gt;/</span></div>
+      <div class="field-row"><span class="field-label">Note</span><span class="field-val">This is the legacy STS format. For newer apps it may be the v2.0 format.</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Logout URL</div>
+      <div class="card-sub">When a user initiates logout from SAP (SLO), SAP redirects here to terminate the Entra ID session as well. Also used by Entra ID to send a LogoutRequest to SAP when signing out from MyApps.</div>
+      <div class="field-row"><span class="field-label">Value</span><span class="field-val code">https://login.microsoftonline.com/&lt;tenantId&gt;/saml2</span></div>
+    </div>
+    <div class="section-label">SAP-side steps (after entering the above)</div>
+    <div class="step"><div class="snum">1</div><div><div class="slabel">Upload Entra ID's certificate into SAP</div><div class="sdetail">In SAP Analytics Cloud → Security → SAML Identity Provider, upload the Base64 cert downloaded from Step ③.</div></div></div>
+    <div class="step"><div class="snum">2</div><div><div class="slabel">Set the NameID mapping in SAP</div><div class="sdetail">Tell SAP which attribute to use as the user key — must match the Unique User Identifier claim set in Step ②.</div></div></div>
+    <div class="step"><div class="snum">3</div><div><div class="slabel">Assign users in Entra ID</div><div class="sdetail">Go to Users and groups in the left nav and assign users or groups. Only assigned users can authenticate via SAML.</div></div></div>
+  </div>
+
+  <!-- Panel: Test SSO -->
+  <div class="panel" id="p-test">
+    <div class="warn-box">The Test button is greyed out until Step ①'s required fields (Entity ID, ACS URL, Sign on URL) are filled in.</div>
+    <div class="card">
+      <div class="card-title">What the Test button does</div>
+      <div class="card-sub">It simulates an SP-initiated login by opening the Sign on URL and redirecting through Entra ID authentication. If the full flow succeeds, you see a "Testing complete" confirmation. If it fails, a detailed error shows the SAML error code and step.</div>
+    </div>
+    <div class="section-label">Common test failures and fixes</div>
+    <div class="card">
+      <div class="field-row"><span class="field-label">AADSTS50011 — reply URL mismatch</span><span class="field-val">ACS URL in Entra ID doesn't exactly match what SAP is sending in the AuthnRequest.</span></div>
+      <div class="field-row"><span class="field-label">AADSTS650056 — misconfigured app</span><span class="field-val">Permissions not granted. An admin must grant consent.</span></div>
+      <div class="field-row"><span class="field-label">InvalidNameIDPolicy</span><span class="field-val">SAP is requesting a NameID format that Entra ID isn't configured to send.</span></div>
+      <div class="field-row"><span class="field-label">SAP error after redirect</span><span class="field-val">User exists in Entra ID but not in SAP, or the Unique User Identifier doesn't match SAP's user store.</span></div>
+    </div>
+    <div class="section-label">Debugging with the browser</div>
+    <div class="step"><div class="snum">1</div><div><div class="slabel">Install SAML-tracer browser extension</div><div class="sdetail">Available for Chrome and Firefox. Captures and decodes the base64 SAML Request and Response in plaintext XML.</div></div></div>
+    <div class="step"><div class="snum">2</div><div><div class="slabel">Trigger the login flow</div><div class="sdetail">Reproduce the error with the tracer active. You'll see the full AuthnRequest and Response XML, including all claims and the Issuer value.</div></div></div>
+    <div class="step"><div class="snum">3</div><div><div class="slabel">Check Entra ID Sign-in logs</div><div class="sdetail">In Entra ID → Monitoring → Sign-in logs, filter by the SAP application. Failures show the exact error code and what condition triggered it.</div></div></div>
+  </div>
+
+  <!-- Panel: All SSO modes -->
+  <div class="panel" id="p-modes">
+    <div class="section-label">How to change the mode: "Change single sign-on mode" in the top bar</div>
+    <div class="mode-grid">
+      <div class="mode-card">
+        <div class="mode-name">Disabled</div>
+        <div class="badge b-gray" style="margin-bottom:6px">Default for new apps</div>
+        <div class="mode-desc">SSO is turned off. Users cannot sign in via Entra ID. The app tile in MyApps still appears but clicking it does nothing. Use this during setup before configuration is complete.</div>
+      </div>
+      <div class="mode-card recommended">
+        <div class="mode-name">SAML-based SSO</div>
+        <span class="badge b-blue" style="margin-bottom:6px">Current mode</span>
+        <div class="mode-desc">Full federation using SAML 2.0 protocol. Entra ID is the IdP. Best for enterprise apps like SAP, Salesforce, ServiceNow. Supports MFA, Conditional Access, and detailed sign-in logs.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-name">OpenID Connect / OAuth 2.0</div>
+        <span class="badge b-green" style="margin-bottom:6px">Modern protocol</span>
+        <div class="mode-desc">Token-based SSO using OIDC/OAuth. The app receives an ID token (JWT) instead of a SAML XML assertion. Used by modern cloud-native apps. Returns JSON, not XML. SAP Analytics Cloud also supports this.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-name">Password-based SSO</div>
+        <span class="badge b-warn" style="margin-bottom:6px">Legacy / weak</span>
+        <div class="mode-desc">Entra ID stores the app's username & password and auto-fills them via a browser extension. No real federation — Entra ID is just a password manager. Use only for legacy apps with no federation support.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-name">Linked</div>
+        <span class="badge b-gray" style="margin-bottom:6px">Not real SSO</span>
+        <div class="mode-desc">No authentication happens via Entra ID. The app tile in MyApps just navigates to the URL you configure. Useful for surfacing external URLs or apps already using a different IdP in the same app launcher. Entra ID does zero token issuance.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-name">Integrated Windows Auth (IWA)</div>
+        <span class="badge b-gray" style="margin-bottom:6px">On-prem / hybrid</span>
+        <div class="mode-desc">For on-premises apps published via Entra Application Proxy. Uses Kerberos Constrained Delegation (KCD) to give users seamless SSO to internal IIS/Windows apps without a VPN. Requires the App Proxy connector.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-name">Header-based SSO</div>
+        <span class="badge b-gray" style="margin-bottom:6px">Legacy apps</span>
+        <div class="mode-desc">Works with Application Proxy. Entra ID authenticates the user, then injects HTTP headers (X-Username, X-Email, etc.) into the proxied request. The app reads these headers instead of performing its own login. Common for Unix/Linux web apps.</div>
+      </div>
+    </div>
+    <div class="tip-box" style="margin-top:1rem"><strong>When to use Linked:</strong> Your app is already federated with a different IdP (e.g. Okta or ADFS), but you want users to find it in the Entra ID / MyApps portal. Linked gives it an app tile without interfering with the existing federation.</div>
+  </div>
+</div>
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('on');
+  event.target.classList.add('active');
+}
+</script>

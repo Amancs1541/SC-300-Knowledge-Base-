@@ -1,0 +1,310 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .container { padding: 1rem 0; }
+  .flow-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .flow-btn {
+    font-size: 12px; font-weight: 500; padding: 6px 14px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-primary);
+    color: var(--color-text-secondary);
+    cursor: pointer; transition: all .15s;
+  }
+  .flow-btn:hover { background: var(--color-background-secondary); }
+  .flow-btn.active {
+    background: var(--color-background-info);
+    color: var(--color-text-info);
+    border-color: var(--color-border-info);
+  }
+  .flow-panel { display: none; }
+  .flow-panel.visible { display: block; }
+  .flow-header { margin-bottom: 1rem; }
+  .flow-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .flow-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 8px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+  .badge {
+    font-size: 11px; font-weight: 500; padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+  .badge-green { background: var(--color-background-success); color: var(--color-text-success); }
+  .badge-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .badge-warn { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .steps-area { margin-top: .75rem; }
+  .step {
+    display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start;
+  }
+  .step-num {
+    min-width: 26px; height: 26px; border-radius: 50%;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; color: var(--color-text-secondary);
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .step-body { flex: 1; }
+  .step-label { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+  .step-detail { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+  .step-code {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 4px; padding: 2px 6px; margin-top: 3px;
+    color: var(--color-text-primary); word-break: break-all;
+  }
+  .divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1rem 0; }
+  .use-case-box {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    padding: .75rem 1rem; margin-bottom: 1rem;
+    font-size: 12px; color: var(--color-text-secondary); line-height: 1.6;
+  }
+  .use-case-box strong { color: var(--color-text-primary); font-weight: 500; }
+  .actors-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+  .actor-chip {
+    display: flex; align-items: center; gap: 6px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 5px 10px; font-size: 12px;
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+  }
+  .actor-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text-tertiary); margin-bottom: 8px; }
+</style>
+<div class="container">
+  <h2 class="sr-only">Microsoft Entra ID Authentication Flows</h2>
+  <div class="flow-nav" id="nav"></div>
+  <div id="panels"></div>
+</div>
+<script>
+const flows = [
+  {
+    id: "auth_code",
+    name: "Authorization Code",
+    title: "Authorization Code Flow",
+    desc: "The most secure and recommended flow for web apps with a server-side component. The authorization code is exchanged server-side for tokens, keeping secrets out of the browser.",
+    badges: [["blue","OAuth 2.0"], ["green","Recommended"], ["blue","PKCE supported"]],
+    actors: [
+      { label: "User (Browser)", color: "#3B8BD4" },
+      { label: "Web App (Server)", color: "#1D9E75" },
+      { label: "Entra ID", color: "#7F77DD" }
+    ],
+    useCase: "<strong>Best for:</strong> Traditional web apps (ASP.NET, Django, Spring Boot). The app has a backend that can securely store a client secret.",
+    steps: [
+      { label: "User visits protected page", detail: "User navigates to a resource that requires authentication." },
+      { label: "App redirects to Entra ID", detail: "App builds the authorization URL with response_type=code, client_id, redirect_uri, scope, and a state parameter for CSRF protection.", code: "GET /authorize?response_type=code&client_id=...&scope=openid profile" },
+      { label: "Entra ID authenticates user", detail: "User enters credentials (and MFA if required). Entra ID validates identity." },
+      { label: "Authorization code returned", detail: "Entra ID redirects browser back to redirect_uri with a short-lived auth code (valid ~10 min).", code: "GET /callback?code=OAQABAAIAAAAm&state=xyz" },
+      { label: "Server exchanges code for tokens", detail: "The server-side app POSTs the code + client_secret to the token endpoint. This exchange happens server-to-server — the secret never touches the browser.", code: "POST /token  body: code=..., client_secret=..." },
+      { label: "Tokens issued", detail: "Entra ID returns an access_token, id_token, and optionally a refresh_token. App stores these securely server-side." },
+      { label: "Access protected resource", detail: "App attaches the access_token as a Bearer header when calling downstream APIs (e.g. Microsoft Graph).", code: "Authorization: Bearer <access_token>" }
+    ]
+  },
+  {
+    id: "pkce",
+    name: "Auth Code + PKCE",
+    title: "Authorization Code + PKCE",
+    desc: "PKCE (Proof Key for Code Exchange) is an extension that protects the auth code flow for public clients (SPAs, mobile apps) that cannot safely store a client secret.",
+    badges: [["blue","OAuth 2.0"], ["green","Best for SPAs & Mobile"], ["blue","No client secret needed"]],
+    actors: [
+      { label: "User", color: "#3B8BD4" },
+      { label: "SPA / Mobile App", color: "#1D9E75" },
+      { label: "Entra ID", color: "#7F77DD" }
+    ],
+    useCase: "<strong>Best for:</strong> Single-Page Applications (React, Angular, Vue), mobile apps (iOS, Android), and desktop native apps where storing a client secret is impossible.",
+    steps: [
+      { label: "Generate code verifier & challenge", detail: "App creates a cryptographically random code_verifier (43–128 chars). It hashes it with SHA-256 to produce the code_challenge.", code: "code_challenge = BASE64URL(SHA256(code_verifier))" },
+      { label: "Redirect with code_challenge", detail: "App redirects to Entra ID, sending the code_challenge and method=S256. The verifier stays in memory — never sent yet.", code: "GET /authorize?code_challenge=...&code_challenge_method=S256" },
+      { label: "Entra ID stores the challenge", detail: "Entra ID records the code_challenge associated with this auth request, then authenticates the user." },
+      { label: "Authorization code returned", detail: "Same as standard auth code flow — a short-lived code is returned to the redirect_uri." },
+      { label: "Token request with code_verifier", detail: "The app exchanges the code AND the original code_verifier. No client_secret is needed!", code: "POST /token  body: code=..., code_verifier=<original>" },
+      { label: "Entra ID verifies the proof", detail: "Entra ID hashes the code_verifier and compares it to the stored challenge. If they match, tokens are issued. An intercepted code is useless without the verifier." },
+      { label: "Tokens issued", detail: "Access token and optionally refresh token returned. The PKCE proof ensures only the original requester can redeem the code." }
+    ]
+  },
+  {
+    id: "client_creds",
+    name: "Client Credentials",
+    title: "Client Credentials Flow",
+    desc: "A machine-to-machine (M2M) flow with no user involved. A service authenticates as itself using its own credentials — a client secret or certificate.",
+    badges: [["blue","OAuth 2.0"], ["warn","No user context"], ["blue","Daemon / Service"]],
+    actors: [
+      { label: "Background Service / Daemon", color: "#D85A30" },
+      { label: "Entra ID", color: "#7F77DD" },
+      { label: "Target API / Microsoft Graph", color: "#1D9E75" }
+    ],
+    useCase: "<strong>Best for:</strong> Daemons, background workers, scheduled jobs, CI/CD pipelines, microservices that call APIs without a logged-in user. Permissions are Application permissions (not delegated).",
+    steps: [
+      { label: "Service authenticates directly", detail: "The service POSTs its client_id + client_secret (or a signed certificate JWT) to the token endpoint. No browser redirect is needed.", code: "POST /token  grant_type=client_credentials&client_id=...&client_secret=..." },
+      { label: "Entra ID validates the credentials", detail: "Entra ID verifies the secret or certificate. No user involvement — the token represents the application identity." },
+      { label: "Access token issued (no refresh token)", detail: "An access token is returned. There is no refresh token — the service simply re-authenticates when the token expires (typically 1 hour)." },
+      { label: "Call downstream API", detail: "Service attaches the token as a Bearer header. The API checks that the application has the required Application Permission (e.g. Mail.Read for all users).", code: "Authorization: Bearer <access_token>" },
+      { label: "Important: use certificates over secrets", detail: "Client secrets can be leaked. Using a certificate (client_assertion) is significantly more secure — Entra ID validates the private key signature without the key ever leaving your service." }
+    ]
+  },
+  {
+    id: "device_code",
+    name: "Device Code",
+    title: "Device Code Flow",
+    desc: "Allows authentication on devices with limited or no browser capability — like a smart TV, IoT device, CLI tool, or SSH session — by offloading the login to a secondary device.",
+    badges: [["blue","OAuth 2.0"], ["warn","Input-constrained devices"], ["blue","CLI & IoT"]],
+    actors: [
+      { label: "Limited Device (CLI / TV)", color: "#D85A30" },
+      { label: "User's Phone / Browser", color: "#3B8BD4" },
+      { label: "Entra ID", color: "#7F77DD" }
+    ],
+    useCase: "<strong>Best for:</strong> Azure CLI (`az login`), VS Code remote SSH, smart TVs, printers, kiosk apps, any scenario where the primary device cannot easily display a browser.",
+    steps: [
+      { label: "Device requests a device code", detail: "The device POSTs its client_id and scopes to the device code endpoint (no browser, no user).", code: "POST /devicecode  client_id=...&scope=openid profile" },
+      { label: "Entra ID issues a device code + user code", detail: "Returns a user_code (short, human-readable like 'ABCD-1234'), a verification_url, and a device_code. Also returns an expiry time (usually 15 min) and a polling interval.", code: '{"user_code":"ABCD-1234","verification_uri":"aka.ms/devicelogin"}' },
+      { label: "Device displays instructions to user", detail: "The device shows the user_code and URL on screen — even in a CLI terminal. User takes their phone or laptop browser.", code: "Visit aka.ms/devicelogin and enter code: ABCD-1234" },
+      { label: "Device polls the token endpoint", detail: "Meanwhile, the device polls repeatedly (every ~5 seconds) using the device_code. It receives 'authorization_pending' until the user completes sign-in.", code: "POST /token  grant_type=device_code&device_code=..." },
+      { label: "User signs in on secondary device", detail: "On their phone/browser, user visits the verification URL, enters the user_code, and completes full authentication (including MFA, Conditional Access, etc.)." },
+      { label: "Entra ID issues tokens to device", detail: "After the user approves, the next poll succeeds. Entra ID returns access_token, id_token, and refresh_token to the original device." },
+      { label: "Device is now authenticated", detail: "The limited device can now call APIs on behalf of the user. The user_code is consumed and cannot be reused." }
+    ]
+  },
+  {
+    id: "implicit",
+    name: "Implicit (Legacy)",
+    title: "Implicit Flow (Legacy)",
+    desc: "A simplified, now-deprecated flow where tokens are returned directly in the URL fragment. Superseded by Auth Code + PKCE for all modern apps.",
+    badges: [["red","Deprecated"], ["red","Security risks"], ["warn","Avoid for new apps"]],
+    actors: [
+      { label: "User (Browser)", color: "#3B8BD4" },
+      { label: "SPA (Frontend only)", color: "#D85A30" },
+      { label: "Entra ID", color: "#7F77DD" }
+    ],
+    useCase: "<strong>Avoid for new apps.</strong> Only relevant for legacy SPAs built before PKCE support was widespread. Microsoft discourages implicit flow — use Auth Code + PKCE instead.",
+    steps: [
+      { label: "App redirects to Entra ID", detail: "App requests response_type=token or response_type=id_token. No authorization code step — tokens come back immediately.", code: "GET /authorize?response_type=token&client_id=..." },
+      { label: "User authenticates", detail: "User signs in and consents to the requested scopes." },
+      { label: "Tokens returned in URL fragment", detail: "Entra ID redirects back with the access_token in the URL hash. The token is visible in browser history and to any script on the page.", code: "GET /callback#access_token=eyJ0...&expires_in=3600" },
+      { label: "Why this is dangerous", detail: "Tokens in URL fragments can be leaked via browser history, referrer headers, and cross-site scripts. No refresh token is issued — users must re-authenticate frequently." },
+      { label: "Migration path", detail: "Migrate to Auth Code + PKCE. MSAL.js 2.x uses PKCE by default. Update response_type=code and add a code_verifier generation step." }
+    ]
+  },
+  {
+    id: "ropc",
+    name: "ROPC (Legacy)",
+    title: "Resource Owner Password Credentials",
+    desc: "The app directly collects the user's username and password and exchanges them for tokens. This bypasses all modern security features and is strongly discouraged.",
+    badges: [["red","Avoid"], ["red","No MFA / CA support"], ["warn","Legacy only"]],
+    actors: [
+      { label: "User", color: "#3B8BD4" },
+      { label: "App (collects creds)", color: "#D85A30" },
+      { label: "Entra ID", color: "#7F77DD" }
+    ],
+    useCase: "<strong>Strongly avoid.</strong> Only acceptable for very old automated test pipelines where no alternative exists. Cannot handle MFA, Conditional Access, federated identity, or SSPR.",
+    steps: [
+      { label: "App collects username & password", detail: "The app presents its own login form and collects the user's credentials directly. The user trusts the app with their Entra ID password." },
+      { label: "App POSTs credentials to token endpoint", detail: "No redirect — the app sends credentials directly as a POST body.", code: "POST /token  grant_type=password&username=...&password=..." },
+      { label: "Entra ID validates (limited checks only)", detail: "Entra ID validates credentials but CANNOT perform MFA, Conditional Access policy evaluation, or federated IdP challenges." },
+      { label: "Tokens issued (if no policy blocks)", detail: "If no CA policy requires MFA or compliant device, tokens are returned. Most enterprise tenants block this flow via Conditional Access." },
+      { label: "Why this is dangerous", detail: "The app sees plaintext passwords. No MFA is possible. Conditional Access policies are bypassed. Any CA policy can silently block sign-in. Use Auth Code + PKCE instead." }
+    ]
+  },
+  {
+    id: "obo",
+    name: "On-Behalf-Of",
+    title: "On-Behalf-Of Flow (OBO)",
+    desc: "Enables a middle-tier API to call a downstream API on behalf of the user. The middle-tier exchanges its incoming access token for a new token scoped to the downstream API.",
+    badges: [["blue","OAuth 2.0 extension"], ["green","API chains"], ["blue","Preserves user context"]],
+    actors: [
+      { label: "User / Client App", color: "#3B8BD4" },
+      { label: "Middle-Tier API (API A)", color: "#1D9E75" },
+      { label: "Downstream API (API B)", color: "#D85A30" },
+      { label: "Entra ID", color: "#7F77DD" }
+    ],
+    useCase: "<strong>Best for:</strong> Microservice chains where API A needs to call API B on behalf of the original user. Common in Azure Functions calling Microsoft Graph, or multi-tier backend architectures.",
+    steps: [
+      { label: "Client calls API A with user's token", detail: "User authenticates and gets an access_token scoped to API A. Client calls API A with this token.", code: "Authorization: Bearer <token_for_API_A>" },
+      { label: "API A requests OBO token from Entra ID", detail: "API A POSTs its own client_id + client_secret + the incoming user token to get a token for API B.", code: "POST /token  grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=<user_token>&requested_token_use=on_behalf_of&scope=<API_B_scope>" },
+      { label: "Entra ID validates the chain", detail: "Entra ID verifies API A's credentials and that the original user consented to the API B scope. The user identity is preserved in the new token." },
+      { label: "New access token for API B issued", detail: "Entra ID issues a new access_token scoped to API B. It still contains the original user's claims (oid, upn, etc.)." },
+      { label: "API A calls API B", detail: "API A attaches the new token to its call to API B. API B sees the original user's identity, not API A's.", code: "Authorization: Bearer <token_for_API_B>" },
+      { label: "Token caching is critical", detail: "API A must cache OBO tokens by user. Requesting a new OBO token on every API call causes throttling. MSAL handles this with its token cache." }
+    ]
+  },
+  {
+    id: "hybrid",
+    name: "Hybrid Flow",
+    title: "Hybrid Flow (OpenID Connect)",
+    desc: "A combination of the authorization code flow and implicit flow. Returns an id_token or access_token immediately in the redirect, while also returning a code for server-side token exchange.",
+    badges: [["blue","OIDC"], ["warn","Limited use cases"], ["blue","id_token + code"]],
+    actors: [
+      { label: "User (Browser)", color: "#3B8BD4" },
+      { label: "Web App (Server)", color: "#1D9E75" },
+      { label: "Entra ID", color: "#7F77DD" }
+    ],
+    useCase: "<strong>Best for:</strong> Traditional server-side apps (ASP.NET with OWIN/OpenID Connect middleware) that need the id_token immediately to render a page while also doing back-channel token exchange for an access token.",
+    steps: [
+      { label: "App requests code + id_token", detail: "App uses response_type=code id_token. This is a hybrid — it asks for both an authorization code (for back-channel exchange) and an immediate id_token (in the fragment).", code: "GET /authorize?response_type=code+id_token&nonce=..." },
+      { label: "User authenticates", detail: "User signs in with full Entra ID authentication (MFA, CA policies evaluated)." },
+      { label: "id_token returned in fragment immediately", detail: "The browser redirect contains both the authorization code (in the query string) and an id_token (in the URL fragment). The app can immediately read the user's identity.", code: "GET /callback?code=OAQ...#id_token=eyJ..." },
+      { label: "Server exchanges code for access token", detail: "The server-side app uses the authorization code to get an access_token via back-channel POST — same as standard auth code flow." },
+      { label: "Why the id_token in the fragment?", detail: "The server-side app can render a personalized response immediately (e.g. 'Welcome Alice') without waiting for the back-channel token exchange to complete." },
+      { label: "Validate the nonce!", detail: "The nonce sent in step 1 must match the nonce claim in the id_token. This prevents replay attacks where an old id_token is injected." }
+    ]
+  }
+];
+
+const nav = document.getElementById('nav');
+const panels = document.getElementById('panels');
+
+flows.forEach((flow, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'flow-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = flow.name;
+  btn.onclick = () => {
+    document.querySelectorAll('.flow-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.flow-panel').forEach(p => p.classList.remove('visible'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + flow.id).classList.add('visible');
+  };
+  nav.appendChild(btn);
+
+  const panel = document.createElement('div');
+  panel.className = 'flow-panel' + (i === 0 ? ' visible' : '');
+  panel.id = 'panel-' + flow.id;
+  
+  const badgeHTML = flow.badges.map(([type, label]) =>
+    `<span class="badge badge-${type}">${label}</span>`
+  ).join('');
+  
+  const actorHTML = flow.actors.map(a =>
+    `<div class="actor-chip"><div class="actor-dot" style="background:${a.color}"></div><span>${a.label}</span></div>`
+  ).join('');
+  
+  const stepsHTML = flow.steps.map((s, idx) => `
+    <div class="step">
+      <div class="step-num">${idx + 1}</div>
+      <div class="step-body">
+        <div class="step-label">${s.label}</div>
+        <div class="step-detail">${s.detail}</div>
+        ${s.code ? `<div class="step-code">${s.code}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+  
+  panel.innerHTML = `
+    <div class="flow-header">
+      <div class="flow-title">${flow.title}</div>
+      <div class="flow-desc">${flow.desc}</div>
+      <div class="badge-row">${badgeHTML}</div>
+    </div>
+    <div class="use-case-box">${flow.useCase}</div>
+    <div class="section-label">Actors involved</div>
+    <div class="actors-row">${actorHTML}</div>
+    <hr class="divider">
+    <div class="section-label">Step-by-step sequence</div>
+    <div class="steps-area">${stepsHTML}</div>
+  `;
+  
+  panels.appendChild(panel);
+});
+</script>

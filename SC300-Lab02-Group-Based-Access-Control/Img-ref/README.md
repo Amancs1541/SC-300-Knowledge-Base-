@@ -216,29 +216,7 @@ Reviewed Microsoft Entra Audit Logs to verify:
 - License assignments
 - Application assignments
 
----
 
-## Screenshots
-
-### Security Groups
-![Security Groups](Screenshots/security-groups.png)
-
-### Dynamic Groups
-![Dynamic Groups](Screenshots/dynamic-groups.png)
-
-### Dynamic Membership Validation
-![Membership Validation](Screenshots/membership-validation.png)
-
-### Group-Based Licensing
-![Group Licensing](Screenshots/group-licensing.png)
-
-### Application Assignment
-![Application Assignment](Screenshots/application-assignment.png)
-
-### Audit Logs
-![Audit Logs](Screenshots/audit-logs.png)
-
----
 
 ## Key Skills Demonstrated
 
@@ -292,7 +270,7 @@ This project demonstrates practical implementation of Microsoft Entra ID identit
 
 ## Author
 
-**Name:** Your Name
+**Name:** Aman Varma
 
 **Certification Path:** Microsoft SC-300 – Identity and Access Administrator
 
